@@ -1,0 +1,148 @@
+global proc shelf_SiSync () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "SiSync: EXPORT active selection to Blender"
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.325 0.325 0.325 
+        -align "center" 
+        -label "Export to Blender" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.2 1.0 0.4 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -imageOverlayLabel "EXP"
+        -image "polyMesh.png" 
+        -image1 "polyMesh.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import sisync_maya\nsisync_maya.send_to_blender()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "SiSync: IMPORT latest mesh from Blender" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.325 0.325 0.325 
+        -align "center" 
+        -label "Import from Blender" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.3 0.8 1.0 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -imageOverlayLabel "IMP"
+        -image "fileOpen.png" 
+        -image1 "fileOpen.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import sisync_maya\nsisync_maya.pull_from_blender()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "SiSync: Open Floating Tool Window" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.325 0.325 0.325 
+        -align "center" 
+        -label "SiSync UI Window" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1.0 0.9 0.2 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -imageOverlayLabel "UI"
+        -image "menuIconWindow.png" 
+        -image1 "menuIconWindow.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import sisync_maya\nsisync_maya.show_ui()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "SiSync: Refresh PBR Material Texture Maps" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.325 0.325 0.325 
+        -align "center" 
+        -label "Refresh Maps" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1.0 0.4 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -imageOverlayLabel "MAP"
+        -image "textureEditor.png" 
+        -image1 "textureEditor.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import sisync_maya\nsisync_maya.refresh_maps_action()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+}
+
+
