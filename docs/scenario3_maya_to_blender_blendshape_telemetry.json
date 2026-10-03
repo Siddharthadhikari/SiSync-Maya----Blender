@@ -1,0 +1,12 @@
+{
+  "imported_base": "Maya_BS_Base",
+  "vertices_count": 382,
+  "shape_keys_created": [
+    "Basis",
+    "brow_down",
+    "mouth_wide"
+  ],
+  "brow_down_value": 1.0,
+  "mouth_wide_value": 0.5,
+  "pass": true
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "cycle": 1,
+    "blender_matrix_world_translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "v10_world_loc_m": [
+      16.341638565063477,
+      -9.999996185302734,
+      50.67081832885742
+    ],
+    "drift_delta_cm": 0.00053948,
+    "pass": false
+  },
+  {
+    "cycle": 2,
+    "blender_matrix_world_translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "v10_world_loc_m": [
+      16.341638565063477,
+      -9.999992370605469,
+      50.67081832885742
+    ],
+    "drift_delta_cm": 0.00085299,
+    "pass": false
+  },
+  {
+    "cycle": 3,
+    "blender_matrix_world_translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "v10_world_loc_m": [
+      16.341638565063477,
+      -9.999988555908203,
+      50.67081832885742
+    ],
+    "drift_delta_cm": 0.00120631,
+    "pass": false
+  },
+  {
+    "cycle": 4,
+    "blender_matrix_world_translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "v10_world_loc_m": [
+      16.341638565063477,
+      -9.999984741210938,
+      50.67081832885742
+    ],
+    "drift_delta_cm": 0.00157284,
+    "pass": false
+  }
+]

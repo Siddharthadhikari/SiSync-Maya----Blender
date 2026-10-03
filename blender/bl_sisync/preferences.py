@@ -18,6 +18,21 @@ from bpy.props import StringProperty, EnumProperty, FloatProperty, BoolProperty
 DEFAULT_EXCHANGE_DIR = os.path.join(tempfile.gettempdir(), "sisync_bridge").replace("\\", "/")
 
 
+def _on_transfer_toggle_update(prefs_obj, _context):
+    try:
+        from . import sisync_bridge_core as core
+        ex_dir = prefs_obj.exchange_dir if getattr(prefs_obj, "exchange_dir", "") else DEFAULT_EXCHANGE_DIR
+        core.write_transfer_toggles(
+            all_enabled=bool(getattr(prefs_obj, "sync_all", False)),
+            hierarchy_enabled=bool(getattr(prefs_obj, "sync_hierarchy", False)),
+            vertex_color_enabled=bool(getattr(prefs_obj, "sync_vertex_color", True)),
+            custom_dir=ex_dir,
+            blendshapes_enabled=bool(getattr(prefs_obj, "sync_blendshapes", False)),
+        )
+    except Exception:
+        pass
+
+
 class SiSyncPreferences(AddonPreferences):
     bl_idname = __package__ if __package__ else "bl_sisync"
 
@@ -93,8 +108,44 @@ class SiSyncPreferences(AddonPreferences):
         default=True,
     )
 
+    sync_all: BoolProperty(
+        name="All",
+        description="When ON, enables all supported transfer features (Hierarchy + Vertex Color). When OFF, individual toggles control behavior",
+        default=False,
+        update=lambda self, ctx: _on_transfer_toggle_update(self, ctx),
+    )
+
+    sync_hierarchy: BoolProperty(
+        name="Hierarchy",
+        description="Transfer parent transforms, Empty/Group nodes, hierarchy depth, and parent-child relationships between Blender and Maya",
+        default=False,
+        update=lambda self, ctx: _on_transfer_toggle_update(self, ctx),
+    )
+
+    sync_vertex_color: BoolProperty(
+        name="Vertex Color",
+        description="Transfer Vertex Color / Corner Color attributes between Blender and Maya",
+        default=True,
+        update=lambda self, ctx: _on_transfer_toggle_update(self, ctx),
+    )
+
+    sync_blendshapes: BoolProperty(
+        name="Export Blend Shapes",
+        description="When ON, exports all mesh shape keys / blend shapes into a dedicated BlendShapes group node",
+        default=False,
+        update=lambda self, ctx: _on_transfer_toggle_update(self, ctx),
+    )
+
     def draw(self, context):
         layout = self.layout
+
+        box_feat = layout.box()
+        box_feat.label(text="Transfer Features", icon='OUTLINER')
+        row_feat = box_feat.row(align=True)
+        row_feat.prop(self, "sync_all", text="All", toggle=True)
+        row_feat.prop(self, "sync_hierarchy", text="Hierarchy", toggle=True)
+        row_feat.prop(self, "sync_vertex_color", text="Vertex Color", toggle=True)
+        row_feat.prop(self, "sync_blendshapes", text="Export Blend Shapes", toggle=True)
 
         box_path = layout.box()
         box_path.label(text="Exchange Folder Location", icon='FILE_FOLDER')

@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "ret_len": 227,
+  "body_exists": true,
+  "body_path": "|Lio01_ALL|Lio01_ORT|Lio01_TRS|Lio01_ROT|Lio01_model|Lio01_body|Lio_c_body_body01_geo",
+  "blendshape_group": [
+    "|Lio01_ALL|BlendShapes"
+  ],
+  "blendshape_targets": [
+    "|Lio01_ALL|BlendShapes|smile",
+    "|Lio01_ALL|BlendShapes|teeth_open"
+  ]
+}

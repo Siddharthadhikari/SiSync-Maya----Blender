@@ -1,0 +1,11 @@
+{
+  "blendshape_node_created": true,
+  "blendshape_node_name": "Test_BS_Base_blendShape",
+  "target_sliders": [
+    "smile",
+    "blink",
+    "jaw_open"
+  ],
+  "deformer_max_delta_cm": 9.5367431640625e-07,
+  "pass": true
+}

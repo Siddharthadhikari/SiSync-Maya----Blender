@@ -1,0 +1,29 @@
+{
+  "uv_sets": [
+    "UVMap",
+    "LightmapUV"
+  ],
+  "slot_shaders": [
+    "HeroSteel_Mat",
+    "HeroTrim_Mat"
+  ],
+  "face_indices_list": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1
+  ],
+  "steel_rough": 0.22,
+  "steel_metal": 0.88,
+  "steel_ior": 1.52,
+  "steel_em": 1.8,
+  "steel_id": "sisync-mat-ab7ea4fe53315e4a",
+  "trim_id": "sisync-mat-53fca5c4e7515b8c",
+  "tex_paths": [
+    "C:/Users/SID/AppData/Local/Temp/sisync_bridge/textures/sisync_p2_albedo.png",
+    "C:/Users/SID/AppData/Local/Temp/sisync_bridge/textures/sisync_p2_normal.png"
+  ],
+  "staged_exists": true
+}

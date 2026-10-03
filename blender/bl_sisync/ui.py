@@ -46,6 +46,71 @@ class VIEW3D_PT_sisync_main(Panel):
 
         layout.separator()
 
+        # 1.2 Active Selection Vertex Counter UI
+        sel_objs = context.selected_objects
+        box_vtx = layout.box()
+        box_vtx.label(text=f"Selection ({len(sel_objs)})", icon='RESTRICT_SELECT_OFF')
+        if context.active_object and context.active_object.type == 'MESH':
+            act_obj = context.active_object
+            raw_v = len(act_obj.data.vertices)
+            depsgraph = context.evaluated_depsgraph_get()
+            eval_v = len(act_obj.evaluated_get(depsgraph).data.vertices)
+            box_vtx.label(text=f"Vertices: {raw_v:,} (Evaluated: {eval_v:,})", icon='VERTEXSEL')
+        elif sel_objs:
+            total_raw = sum(len(o.data.vertices) for o in sel_objs if o.type == 'MESH' and o.data)
+            box_vtx.label(text=f"Total Mesh Vertices: {total_raw:,}", icon='VERTEXSEL')
+        else:
+            box_vtx.label(text="No mesh selected", icon='INFO')
+
+        layout.separator()
+
+        # 1.5 Transfer Feature Toggles (Server / All / Hierarchy / Vertex Color)
+        if prefs:
+            box_toggles = layout.box()
+            box_toggles.label(text="Transfer Options", icon='OUTLINER')
+            col_t = box_toggles.column(align=True)
+
+            running = server.is_server_running()
+            row_srv = col_t.row(align=True)
+            row_srv.label(text="Server")
+            row_srv.operator(
+                "sisync.toggle_server",
+                text="ON" if running else "OFF",
+                depress=running,
+                icon='PLAY' if running else 'PAUSE',
+            )
+
+            row_all = col_t.row(align=True)
+            row_all.label(text="All")
+            row_all.prop(prefs, "sync_all", text="ON" if prefs.sync_all else "OFF", toggle=True)
+
+            row_hier = col_t.row(align=True)
+            row_hier.label(text="Hierarchy")
+            row_hier.prop(
+                prefs,
+                "sync_hierarchy",
+                text="ON" if (prefs.sync_all or prefs.sync_hierarchy) else "OFF",
+                toggle=True,
+            )
+
+            row_vcol = col_t.row(align=True)
+            row_vcol.label(text="Vertex Color")
+            row_vcol.prop(
+                prefs,
+                "sync_vertex_color",
+                text="ON" if (prefs.sync_all or prefs.sync_vertex_color) else "OFF",
+                toggle=True,
+            )
+
+            row_bs = col_t.row(align=True)
+            row_bs.label(text="Export Blend Shapes")
+            row_bs.prop(
+                prefs,
+                "sync_blendshapes",
+                text="ON" if prefs.sync_blendshapes else "OFF",
+                toggle=True,
+            )
+
         # 2. Axis & Scale Correction Box (Identical options to Maya UI)
         if prefs:
             box_axis = layout.box()

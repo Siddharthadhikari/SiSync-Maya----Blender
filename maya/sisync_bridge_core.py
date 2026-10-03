@@ -48,6 +48,7 @@ OBJ_BLENDER_TO_MAYA = "blender_to_maya.obj"
 
 METADATA_FILENAME = "sisync_metadata.json"
 EXCHANGE_META_LEGACY = "SiSync_Exchange.json"
+PHASE2_SIDECAR_FILENAME = "sisync_phase2_data.json"
 
 TEXTURES_SUBDIR = "textures"
 LOGS_SUBDIR = "logs"
@@ -277,6 +278,64 @@ def read_metadata(custom_dir: Optional[str] = None) -> Dict[str, Any]:
             except Exception as e:
                 log_event("network", "READ_METADATA", "error", error=str(e), extra=candidate)
     return {}
+
+
+def get_phase2_sidecar_path(custom_dir: Optional[str] = None) -> str:
+    return os.path.join(get_bridge_dir(custom_dir), PHASE2_SIDECAR_FILENAME).replace("\\", "/")
+
+
+def write_phase2_sidecar(data: Dict[str, Any], custom_dir: Optional[str] = None) -> str:
+    """Writes Phase 2 vertex color and material sidecar payload to sisync_phase2_data.json."""
+    sidecar_path = get_phase2_sidecar_path(custom_dir)
+    try:
+        with open(sidecar_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception as e:
+        log_event("network", "WRITE_PHASE2_SIDECAR", "error", error=str(e), extra=sidecar_path)
+    return sidecar_path
+
+
+def read_phase2_sidecar(custom_dir: Optional[str] = None) -> Dict[str, Any]:
+    """Reads Phase 2 vertex color and material sidecar payload from sisync_phase2_data.json."""
+    sidecar_path = get_phase2_sidecar_path(custom_dir)
+    if os.path.exists(sidecar_path):
+        try:
+            with open(sidecar_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+        except Exception as e:
+            log_event("network", "READ_PHASE2_SIDECAR", "error", error=str(e), extra=sidecar_path)
+    return {}
+
+
+def generate_material_id(name_hint: str = "") -> str:
+    """Generates a deterministic-format unique material bridge ID that survives renames across DCCs."""
+    ns = uuid.UUID("a8098c1a-f86e-11da-bd1a-00112444be1e")
+    seed = f"material:{name_hint}:{time.time_ns()}:{uuid.uuid4().hex[:8]}"
+    return f"sisync-mat-{uuid.uuid5(ns, seed).hex[:16]}"
+
+
+def stage_texture_to_bridge(src_path: str, custom_dir: Optional[str] = None) -> str:
+    """
+    Ensures a texture file is staged inside sisync_bridge/textures/ for cross-DCC access
+    and returns the normalized path. If src_path does not exist on disk, returns normalized src_path.
+    """
+    if not src_path:
+        return ""
+    norm_src = os.path.normpath(src_path).replace("\\", "/")
+    if not os.path.exists(norm_src) or not os.path.isfile(norm_src):
+        return norm_src
+    tex_dir = get_textures_dir(custom_dir)
+    basename = os.path.basename(norm_src)
+    dst_path = os.path.join(tex_dir, basename).replace("\\", "/")
+    try:
+        if os.path.abspath(norm_src).lower() != os.path.abspath(dst_path).lower():
+            shutil.copy2(norm_src, dst_path)
+        return dst_path
+    except Exception:
+        return norm_src
+
 
 
 # ---------------------------------------------------------------------------
@@ -858,3 +917,91 @@ class CoordinateBasis:
         else:
             bx, by, bz = pt[0], pt[1], pt[2]
         return (bx * fx * unit_scale, by * fy * unit_scale, bz * fz * unit_scale)
+
+    @staticmethod
+    def blender_rot_to_maya(rot_deg: Tuple[float, float, float], up_axis: str = "Y") -> Tuple[float, float, float]:
+        rx, ry, rz = float(rot_deg[0]), float(rot_deg[1]), float(rot_deg[2])
+        if up_axis.upper() == "Y":
+            return (rx, rz, -ry)
+        return (rx, ry, rz)
+
+    @staticmethod
+    def maya_rot_to_blender(rot_deg: Tuple[float, float, float], up_axis: str = "Y") -> Tuple[float, float, float]:
+        mx, my, mz = float(rot_deg[0]), float(rot_deg[1]), float(rot_deg[2])
+        if up_axis.upper() == "Y":
+            return (mx, -mz, my)
+        return (mx, my, mz)
+
+
+def resolve_transfer_flags(
+    all_enabled: bool = False,
+    hierarchy_enabled: bool = False,
+    vertex_color_enabled: bool = True,
+    blendshapes_enabled: bool = False,
+) -> Dict[str, bool]:
+    """
+    Deterministically resolves the relationship between All, Hierarchy, Vertex Color, and Export Blend Shapes:
+    - If All is ON (True), Hierarchy and Vertex Color are enabled.
+    - If All is OFF (False), individual Hierarchy and Vertex Color toggles independently control behavior.
+    - Export Blend Shapes (blendshapes) is controlled explicitly by blendshapes_enabled.
+    """
+    all_flag = bool(all_enabled)
+    return {
+        "all": all_flag,
+        "hierarchy": True if all_flag else bool(hierarchy_enabled),
+        "vertex_color": True if all_flag else bool(vertex_color_enabled),
+        "blendshapes": bool(blendshapes_enabled),
+        "raw_all": all_flag,
+        "raw_hierarchy": bool(hierarchy_enabled),
+        "raw_vertex_color": bool(vertex_color_enabled),
+        "raw_blendshapes": bool(blendshapes_enabled),
+    }
+
+
+def get_toggles_path(custom_dir: Optional[str] = None) -> str:
+    return os.path.join(get_bridge_dir(custom_dir), "sisync_toggles.json").replace("\\", "/")
+
+
+def write_transfer_toggles(
+    all_enabled: bool,
+    hierarchy_enabled: bool,
+    vertex_color_enabled: bool,
+    custom_dir: Optional[str] = None,
+    blendshapes_enabled: bool = False,
+) -> Dict[str, bool]:
+    flags = resolve_transfer_flags(
+        all_enabled,
+        hierarchy_enabled,
+        vertex_color_enabled,
+        blendshapes_enabled=blendshapes_enabled,
+    )
+    payload = {
+        "raw_all": bool(all_enabled),
+        "raw_hierarchy": bool(hierarchy_enabled),
+        "raw_vertex_color": bool(vertex_color_enabled),
+        "raw_blendshapes": bool(blendshapes_enabled),
+        **flags,
+        "timestamp": time.time(),
+    }
+    try:
+        with open(get_toggles_path(custom_dir), "w", encoding="utf-8") as fp:
+            json.dump(payload, fp, indent=2)
+    except Exception:
+        pass
+    return flags
+
+
+def read_transfer_toggles(custom_dir: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    p = get_toggles_path(custom_dir)
+    if not os.path.exists(p):
+        return None
+    try:
+        with open(p, "r", encoding="utf-8") as fp:
+            data = json.load(fp)
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    return None
+
+

@@ -1,56 +1,67 @@
-# SiSync — Maya 2026 ⇄ Blender 5.x Production Bridge (Phase 1)
+# SiSync — Real-Time Blender ⇄ Maya Production Bridge
 
-**SiSync** is a bidirectional geometry, transform, and PBR texture reload bridge connecting **Autodesk Maya 2026** and **Blender 5.2 LTS**.
-
-Created by **Siddhartha Adhikari**.
+SiSync is a non-destructive, real-time bi-directional production bridge for **Blender (4.2+ / 5.x)** and **Autodesk Maya (2024–2026)**. It transfers production character geometry, hierarchy, transforms, Subdivision Surface states, non-destructive Shape Keys / Blend Shapes, UVs, materials (`sisync_material_id`), and multiple vertex color attributes (`BYTE_COLOR` / `FLOAT_COLOR`) without polluting the source scene.
 
 ---
 
-## Phase 1 Capabilities
-
-- **Bidirectional FBX Mesh Synchronization**:
-  - One-click **Export to Maya** and **Import from Maya** in Blender (`View3D > Sidebar (N) > SiSync` and 3D Viewport Header).
-  - One-click **Export to Blender** and **Import from Blender** in Maya (`SiSync` Window and `SiSync` Shelf).
-  - Automatic live background synchronization over localhost TCP sockets (`19850` Maya ⇄ `19851` Blender) and Maya's main-thread `commandPort` (`19852`).
-- **Canonical Coordinate & Scale Conversion**:
-  - Automatic conversion between **Maya (`Y-Up`, centimeters)** and **Blender (`Z-Up`, meters)** (`det(C) = +1.0`).
-  - Support for **Auto Scene Units (`m ⇄ cm`)** and **Manual Scale Factor**.
-  - Reciprocal **Flip X / Flip Y / Flip Z** toggles with automatic surface winding/normal correction on negative determinants.
-  - **Freeze Location to `(0, 0, 0)`** and **Freeze Rotation to `(0, 0, 0)`** (baking transforms into mesh geometry while setting object origin/rotation to identity).
-  - Full support for parented meshes (`Parent -> Child` hierarchies).
-- **Stable Object Identity (`sisync_bridge_id`)**:
-  - Deterministic UUID5 `sisync_bridge_id` stored on both Blender objects (`obj["sisync_bridge_id"]`) and Maya transform nodes (`node.sisync_bridge_id`).
-  - Survives object renames and remeshing across round-trips without creating duplicate meshes.
-- **Sculpt, Edit & Remesh Support**:
-  - Automatically flushes Blender **Sculpt Mode** (PBVH), **Edit Mode**, and **Multires** levels prior to export.
-  - Clears Maya vertex tweaks (`.pnts`) prior to `outMesh -> inMesh` topology replacement so remeshed geometry imports cleanly without vertex spikes.
-  - Preserves existing Blender material assignments when updating remeshed topology from Maya.
-- **Deterministic Echo Suppression**:
-  - Uses `(session_id, revision, source, destination)` and import guards to prevent `Blender → Maya → Blender` infinite bounce loops.
-
----
-
-## Roadmap & Phase Boundary
+## Repository Structure
 
 ```text
-SiSync Phase 1 (Current Release — v1.0.0)
-Foundation / Mesh, Transform & Live TCP Bridge
-        ↓
-SiSync Phase 2 (Next Planned Release)
-Vertex Color (CPV) Transfer + Cross-DCC Material Manifest & PBR Map Sync
-        ↓
-Future Phases
-Advanced Shader Network & Rigging Synchronization
+SiSync_GitHub_Release_Staging/
+├── blender/
+│   ├── bl_sisync/                # Blender Extension / Add-on source package
+│   │   ├── __init__.py
+│   │   ├── blender_manifest.toml
+│   │   ├── network.py
+│   │   ├── operators.py
+│   │   ├── preferences.py
+│   │   ├── server.py
+│   │   ├── sisync_bridge_core.py
+│   │   ├── sync_maps.py
+│   │   ├── sync_mesh.py
+│   │   └── ui.py
+│   └── bl_sisync.zip             # Ready-to-install Blender Add-on / Extension archive
+├── maya/
+│   ├── drag_and_drop_install.py  # Drag-and-drop installer for Maya viewport
+│   ├── sisync_bridge_core.py     # Shared protocol & metadata core
+│   └── sisync_maya.py            # Maya shelf UI, socket server & FBX/JSON sync engine
+├── docs/                         # Automated production validation & edge-case telemetry
+│   ├── full_blendshape_accuracy_audit.json
+│   ├── phase1_edge_audit.json
+│   ├── phase2_hierarchy_vcol_validation_report.json
+│   ├── phase2_validation_report.json
+│   └── shapekey_export_behavior_validation.json
+└── README.md
 ```
 
 ---
 
-## Documentation Index
+## Key Features
 
-- [Architecture Overview](docs/ARCHITECTURE.md)
-- [Network & Framing Protocol](docs/PROTOCOL.md)
-- [Installation, Update & Uninstall Guide](docs/INSTALLATION.md)
-- [Automated & Live Validation Suite](docs/TESTING.md)
-- [Phase 1 Known Limitations](docs/LIMITATIONS.md)
-- [Changelog](CHANGELOG.md)
-- [License](LICENSE)
+1. **Non-Destructive Shape Key / Blend Shape Export**:
+   - **Export Blend Shapes = OFF**: Exports the mesh in its exact current viewport Shape Key state (`Basis + active shape keys`) with zero separate BlendShape target objects created in either Blender or Maya.
+   - **Export Blend Shapes = ON**: Evaluates the neutral `Basis` mesh for the character hierarchy and evaluates each individual Shape Key target (`1.0` isolated) directly from the dependency graph, exporting them under a dedicated top-level `|BlendShapes|<ShapeKeyName>` group in Maya while leaving the Blender scene 100% untouched (`0` leftover helper meshes or collections).
+2. **Subdivision Surface & Armature Transform Invariance**:
+   - Evaluates Subdivision Surface modifiers in unposed rest space while preserving exact world/local hierarchy transforms (`0.0 cm` drift).
+3. **Driver & Keyframe State Preservation**:
+   - Automatically snapshots, mutes during isolated Basis/Target evaluations, and restores all Shape Key and Modifier drivers and FCurves (including Blender 5.x layered/slotted Action channelbags) inside a guaranteed `finally` block.
+4. **Hierarchy, Materials & Multi-Layer Vertex Colors**:
+   - Preserves full DAG hierarchy (`|Root|Group|Mesh`), material slot order, per-face material assignments (`sisync_material_id`), and multiple vertex color layers across `Blender ⇄ Maya`.
+
+---
+
+## Installation
+
+### Blender (4.2+ / 5.x)
+1. Open Blender and go to **Edit → Preferences → Add-ons** (or **Get Extensions**).
+2. Click the top-right dropdown arrow and choose **Install from Disk...**.
+3. Select `blender/bl_sisync.zip`.
+4. Enable **SiSync Bridge** (`bl_sisync`) and open the **3D Viewport → Sidebar (`N`) → SiSync** tab.
+
+### Autodesk Maya (2024–2026)
+1. Copy `maya/sisync_maya.py` and `maya/sisync_bridge_core.py` to your Maya scripts directory (e.g., `Documents/maya/2026/scripts/`), or drag `maya/drag_and_drop_install.py` directly into the Maya viewport.
+2. Run in a Python tab in the Script Editor:
+   ```python
+   import sisync_maya
+   sisync_maya.show_ui()
+   ```
