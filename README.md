@@ -1,6 +1,6 @@
 # SiSync — Real-Time Blender ⇄ Maya Production Bridge
 
-SiSync is a non-destructive, real-time bi-directional production bridge for **Blender (4.2+ / 5.x)** and **Autodesk Maya (2024–2026)**. It transfers production character geometry, hierarchy, transforms, Subdivision Surface states, non-destructive Shape Keys / Blend Shapes, UVs, materials (`sisync_material_id`), and multiple vertex color attributes (`BYTE_COLOR` / `FLOAT_COLOR`) without polluting the source scene.
+SiSync is a non-destructive, real-time bi-directional production bridge for **Blender (4.2+ / 5.x)** and **Autodesk Maya (2024–2027)**. It transfers production character geometry, hierarchy, transforms, Subdivision Surface states, non-destructive Shape Keys / Blend Shapes, UVs, materials (`sisync_material_id`), and multiple vertex color attributes (`BYTE_COLOR` / `FLOAT_COLOR`) without polluting the source scene.
 
 ---
 
